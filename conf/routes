@@ -5,6 +5,7 @@
 GET     /                           controllers.Application.index
 GET     /logActors                  controllers.Application.logActors
 POST	/message/:text				controllers.Application.message(text: String)
+GET     /dashboard                  controllers.Application.dashboard
 GET	    /stream					    controllers.Application.stream
 
 

@@ -1,6 +1,5 @@
 package controllers;
 
-import akka.Protocol;
 import akka.Protocol.LogActors;
 import akka.Protocol.Message;
 import akka.SSEActor;
@@ -16,6 +15,7 @@ import play.libs.EventSource.Event;
 import play.mvc.Controller;
 import play.mvc.Result;
 import services.Constants;
+import views.html.dashboard;
 import views.html.index;
 
 import javax.inject.Inject;
@@ -42,8 +42,16 @@ public class Application extends Controller {
      * home page
      */
     public Result index() {
-        Logger.debug( "Index" );
+        Logger.debug( "Application: index" );
         return ok( index.render( "ok" ) );
+    }
+
+    /**
+     * home page
+     */
+    public Result dashboard() {
+        Logger.debug( "Application: dashboard" );
+        return ok( dashboard.render() );
     }
 
 
@@ -53,7 +61,7 @@ public class Application extends Controller {
      * @return a result object
      */
     public Result message( String text ) {
-        Logger.debug( "sendMessage" );
+        Logger.debug( "Application: message [{}]", text );
         streamMediator.tell( new Message( text ), ActorRef.noSender() );
         return ok();
     }
@@ -64,7 +72,7 @@ public class Application extends Controller {
      * @return a HTTP 200
      */
     public Result logActors() {
-        Logger.debug( "log" );
+        Logger.debug( "Application: log" );
         utils.tell( new LogActors(), ActorRef.noSender() );
         return ok();
     }
@@ -76,7 +84,7 @@ public class Application extends Controller {
      */
     public Result stream() {
 
-        Logger.debug( "start stream" );
+        Logger.debug( "Application: start stream" );
 
         Source<Event, ?> eventSource =
                 Source.actorPublisher( SSEActor.props() ).
