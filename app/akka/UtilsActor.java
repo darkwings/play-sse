@@ -6,6 +6,8 @@ import akka.japi.pf.ReceiveBuilder;
 import play.Logger;
 
 /**
+ * Utility actor
+ *
  * @author ftorriani
  */
 public class UtilsActor extends AbstractActor {

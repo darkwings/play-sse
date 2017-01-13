@@ -16,6 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * The publisher actor, that will be bound to an Akka stream via {@link play.api.libs.EventSource}
+ *
  * @author ftorriani
  */
 public class SSEActor extends AbstractActorPublisher<String> {
@@ -58,24 +60,24 @@ public class SSEActor extends AbstractActorPublisher<String> {
                 build() );
 
         streamMediator = context().actorSelection( "/user/" + Constants.STREAM_MEDIATOR_ACTOR_NAME );
-        Logger.debug( "SSEActor: registering {} to StreamMediator", context().self() );
+        Logger.debug( "SSEActor: registering myself ({}) to StreamMediator", context().self() );
         streamMediator.tell( new Register(), context().self() );
     }
 
     void handleMessage( String message ) {
         if ( buf.isEmpty() && totalDemand() > 0 ) {
-            Logger.debug( "calling onNext with '{}'", message );
+            Logger.debug( "SSEActor: calling onNext with '{}'", message );
             onNext( message );
         }
         else {
-            Logger.debug( "buffering {}", message );
+            Logger.debug( "SSEActor: buffering {}", message );
             buf.add( message );
             deliverBuf();
         }
     }
 
     void deliverBuf() {
-        Logger.debug( "totalDemand() {}", totalDemand() );
+        Logger.debug( "SSEActor: totalDemand() {}", totalDemand() );
         while ( totalDemand() > 0 ) {
             if ( totalDemand() <= Integer.MAX_VALUE ) {
                 final List<String> took =

@@ -1,6 +1,7 @@
 package controllers;
 
 import akka.Protocol;
+import akka.Protocol.LogActors;
 import akka.Protocol.Message;
 import akka.SSEActor;
 import akka.UtilsActor;
@@ -47,7 +48,7 @@ public class Application extends Controller {
 
 
     /**
-     * Sends a message to all the SSE publishers
+     * Sends a message to all the registered SSE publishers
      * @param text the text to be sent
      * @return a result object
      */
@@ -58,18 +59,19 @@ public class Application extends Controller {
     }
 
     /**
-     * Logs the available actors
+     * Logs the available actors in the log file
      *
      * @return a HTTP 200
      */
     public Result logActors() {
         Logger.debug( "log" );
-        utils.tell( new Protocol.LogActors(), ActorRef.noSender() );
+        utils.tell( new LogActors(), ActorRef.noSender() );
         return ok();
     }
 
     /**
-     * Opens a SSE connection
+     * Opens a SSE connection backed by an Akka stream
+     *
      * @return a chunked result
      */
     public Result stream() {

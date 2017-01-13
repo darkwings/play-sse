@@ -12,6 +12,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
+ * Stream mediator actor. It gathers all the available publishers via
+ * {@link Register} message and push to all of them the {@link Message} received.
+ *
  * @author ftorriani
  */
 public class StreamMediatorActor extends AbstractActor {
