@@ -12,7 +12,10 @@
 <body>
 <div>
     <h3>Messages</h3>
-    <div id="message"></div>
+    <div>
+        Pushed messages below:<br/>
+        <div id="message"></div>
+    </div>
 </div>
 
 <script>
@@ -21,7 +24,8 @@
 			setTimeout(function() {
 				if (statsStream == undefined) {
 						console.log("statsStream is undefined")
-				} else {
+				}
+				else {
 					// start the EventSource which will open a streaming connection to the server
 					var source = new EventSource(statsStream);
 

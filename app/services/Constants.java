@@ -5,5 +5,8 @@ package services;
  */
 public interface Constants {
 
-    String STREAM_MEDIATOR_ACTOR_NAME = "StreamMediatorActor";
+    /**
+     * The name of the publishers manager
+     */
+    String PUBLISHERS_MANAGER_ACTOR = "PublishersManagerActor";
 }

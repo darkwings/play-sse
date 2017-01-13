@@ -1,6 +1,6 @@
 package services;
 
-import akka.StreamMediatorActor;
+import akka.sse.PublishersManagerActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -14,6 +14,8 @@ import play.inject.ApplicationLifecycle;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
+
+import static services.Constants.PUBLISHERS_MANAGER_ACTOR;
 
 /**
  * Application initializer, called by {@link Module}
@@ -31,8 +33,8 @@ public class ApplicationInitializer {
 
     @Inject
     public ApplicationInitializer( ActorSystem actorSystem, Clock clock, ApplicationLifecycle appLifecycle ) {
-        Logger.info( "Creating StreamMediatorActor" );
-        streamMediator = actorSystem.actorOf( Props.create( StreamMediatorActor.class ), Constants.STREAM_MEDIATOR_ACTOR_NAME );
+        Logger.info( "Creating PublishersManagerActor" );
+        streamMediator = actorSystem.actorOf( Props.create( PublishersManagerActor.class ), PUBLISHERS_MANAGER_ACTOR );
 
         this.clock = clock;
         this.appLifecycle = appLifecycle;

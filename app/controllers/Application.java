@@ -1,14 +1,14 @@
 package controllers;
 
-import akka.Protocol.LogActors;
-import akka.Protocol.Message;
-import akka.SSEActor;
-import akka.UtilsActor;
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
+import akka.sse.Protocol.Message;
+import akka.sse.PublisherActor;
 import akka.stream.javadsl.Source;
+import akka.utils.UtilsActor;
+import akka.utils.UtilsActorProtocol.LogActors;
 import play.Logger;
 import play.libs.EventSource;
 import play.libs.EventSource.Event;
@@ -33,7 +33,7 @@ public class Application extends Controller {
 
     @Inject
     public Application( ActorSystem actorSystem ) {
-        streamMediator = actorSystem.actorSelection( "/user/" + Constants.STREAM_MEDIATOR_ACTOR_NAME );
+        streamMediator = actorSystem.actorSelection( "/user/" + Constants.PUBLISHERS_MANAGER_ACTOR );
 
         utils = actorSystem.actorOf( Props.create( UtilsActor.class ), "UtilsActor" );
     }
@@ -72,7 +72,7 @@ public class Application extends Controller {
      * @return a HTTP 200
      */
     public Result logActors() {
-        Logger.debug( "Application: log" );
+        Logger.debug( "Application: log actors" );
         utils.tell( new LogActors(), ActorRef.noSender() );
         return ok();
     }
@@ -87,7 +87,7 @@ public class Application extends Controller {
         Logger.debug( "Application: start stream" );
 
         Source<Event, ?> eventSource =
-                Source.actorPublisher( SSEActor.props() ).
+                Source.actorPublisher( PublisherActor.props() ).
                         map( msg -> Event.event( (String) msg ) );
 
         return ok().chunked( eventSource.via( EventSource.flow() ) ).as( EVENT_STREAM );

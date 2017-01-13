@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.ExecutionContextExecutor;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 /**
  * This controller contains an action that demonstrates how to write
  * simple asynchronous code in a controller. It uses a timer to
@@ -47,8 +49,8 @@ public class AsyncController extends Controller {
      * will be called when the application receives a <code>GET</code> request with
      * a path of <code>/message</code>.
      */
-    public CompletionStage<Result> message() {
-        return getFutureMessage( 1, TimeUnit.SECONDS ).thenApplyAsync( Results::ok, exec );
+    public CompletionStage<Result> asyncMessage() {
+        return getFutureMessage( 1, SECONDS ).thenApplyAsync( Results::ok, exec );
     }
 
     private CompletionStage<String> getFutureMessage( long time, TimeUnit timeUnit ) {
