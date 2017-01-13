@@ -1,19 +1,20 @@
 package controllers;
 
 import akka.Protocol;
-import akka.Protocol.Init;
-import akka.Protocol.NewMessage;
-import akka.Protocol.UserRegistration;
+import akka.Protocol.Message;
 import akka.SSEActor;
-import akka.StreamMediator;
+import akka.UtilsActor;
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.stream.javadsl.Source;
+import play.Logger;
 import play.libs.EventSource;
 import play.libs.EventSource.Event;
 import play.mvc.Controller;
 import play.mvc.Result;
+import services.Constants;
 import views.html.index;
 
 import javax.inject.Inject;
@@ -21,52 +22,64 @@ import javax.inject.Singleton;
 
 import static play.mvc.Http.MimeTypes.EVENT_STREAM;
 
+
 @Singleton
 public class Application extends Controller {
 
+    private ActorSelection streamMediator;
 
-    private ActorRef streamMediator;
+    private ActorRef utils;
 
     @Inject
     public Application( ActorSystem actorSystem ) {
-        streamMediator = actorSystem.actorOf( Props.create( StreamMediator.class ), "StreamMediator" );
+        streamMediator = actorSystem.actorSelection( "/user/" + Constants.STREAM_MEDIATOR_ACTOR_NAME );
+
+        utils = actorSystem.actorOf( Props.create( UtilsActor.class ), "UtilsActor" );
     }
 
+    /**
+     * home page
+     */
     public Result index() {
-
+        Logger.debug( "Index" );
         return ok( index.render( "ok" ) );
     }
 
 
-    public Result createNewUser() {
-
-        streamMediator.tell( new UserRegistration(), ActorRef.noSender() );
+    /**
+     * Sends a message to all the SSE publishers
+     * @param text the text to be sent
+     * @return a result object
+     */
+    public Result message( String text ) {
+        Logger.debug( "sendMessage" );
+        streamMediator.tell( new Message( text ), ActorRef.noSender() );
         return ok();
     }
 
-    public Result sendMessage() {
-        streamMediator.tell( new NewMessage(), ActorRef.noSender() );
+    /**
+     * Logs the available actors
+     *
+     * @return a HTTP 200
+     */
+    public Result logActors() {
+        Logger.debug( "log" );
+        utils.tell( new Protocol.LogActors(), ActorRef.noSender() );
         return ok();
     }
 
-    public Result init() {
-
-        streamMediator.tell( new Init(), ActorRef.noSender() );
-        return ok();
-    }
-
+    /**
+     * Opens a SSE connection
+     * @return a chunked result
+     */
     public Result stream() {
 
-        System.out.println( "Application::stream" );
+        Logger.debug( "start stream" );
 
         Source<Event, ?> eventSource =
                 Source.actorPublisher( SSEActor.props() ).
                         map( msg -> Event.event( (String) msg ) );
 
-        // Facendo riferimento allo schema Source -> Flow -> Sink di Akka Streams
-        // Source -> l'attore SSEActor
-        // Flow -> EventSource.flow()
-        // Sink -> il canale SSE aperto dal client
         return ok().chunked( eventSource.via( EventSource.flow() ) ).as( EVENT_STREAM );
     }
 }

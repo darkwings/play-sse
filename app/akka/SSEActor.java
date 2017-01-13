@@ -1,14 +1,16 @@
 package akka;
 
 
-import akka.Protocol.MessageAccepted;
-import akka.Protocol.NewMessage;
-import akka.Protocol.Start;
-import akka.Protocol.UserRegistration;
+import akka.Protocol.Message;
+import akka.Protocol.Register;
+import akka.Protocol.Unregister;
+import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.japi.pf.ReceiveBuilder;
 import akka.stream.actor.AbstractActorPublisher;
 import akka.stream.actor.ActorPublisherMessage;
+import play.Logger;
+import services.Constants;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,71 +20,62 @@ import java.util.List;
  */
 public class SSEActor extends AbstractActorPublisher<String> {
 
-//    private final LoggingAdapter log = Logging.getLogger( context().system(), this );
-
+    /**
+     * Buffer of messages
+     */
     private final List<String> buf = new ArrayList<>();
 
     public static Props props() {
         return Props.create( SSEActor.class );
     }
 
+    private ActorSelection streamMediator;
+
     public SSEActor() {
-        System.out.println( "SSEActor: building actor" );
+        Logger.info( "SSEActor: building actor" );
 
         receive( ReceiveBuilder.
-                match( Start.class, msg -> {
-                    System.out.println( "SSEActor: " + msg );
 
-                    handleMessage( "Start" );
+                match( Message.class, msg -> {
+                    Logger.info( "SSEActor: received message: {}", msg.text );
+                    handleMessage( msg.text );
                 } ).
-                match( UserRegistration.class, msg -> {
-                    System.out.println( "SSEActor: " + msg );
-
-                    handleMessage( "Registration" );
-                } ).
-                match( NewMessage.class, msg -> {
-                    System.out.println( "SSEActor: " + msg );
-
-                    sender().tell( new MessageAccepted(), self() );
-
-                    handleMessage( "NewMessage" );
-                } ).
-                match( ActorPublisherMessage.Request.class, msg -> {
-                    System.out.println( "SSEActor: Request " + msg );
+                match( ActorPublisherMessage.Request.class, request -> {
+                    Logger.info( "SSEActor: received request: {}", request );
 
                     deliverBuf();
 
                 } ).
-                match( ActorPublisherMessage.Cancel.class, msg -> {
-                    System.out.println( "SSEActor: Cancel " + msg );
-
+                match( ActorPublisherMessage.Cancel.class, cancel -> {
+                    Logger.info( "SSEActor: received cancel: {}. Unregistering to StreamMediator", cancel );
+                    streamMediator.tell( new Unregister(), context().self() );
                     context().stop( self() );
 
                 } ).
                 matchAny( msg -> {
-                    System.out.println( "SSEActor: received (and ignored) " + msg );
+                    Logger.info( "SSEActor: received (and ignored) {}", msg );
                 } ).
                 build() );
 
-
-        // TODO: fare in modo che questo attore si registri presso StreamMediator (inviando un messaggio con il path)
-        System.out.println( "SSEActor: " + context().self() );
+        streamMediator = context().actorSelection( "/user/" + Constants.STREAM_MEDIATOR_ACTOR_NAME );
+        Logger.debug( "SSEActor: registering {} to StreamMediator", context().self() );
+        streamMediator.tell( new Register(), context().self() );
     }
 
     void handleMessage( String message ) {
         if ( buf.isEmpty() && totalDemand() > 0 ) {
-            System.out.println( "calling onNext with '" + message + "'" );
+            Logger.debug( "calling onNext with '{}'", message );
             onNext( message );
         }
         else {
-            System.out.println( "buffering " + message );
+            Logger.debug( "buffering {}", message );
             buf.add( message );
             deliverBuf();
         }
     }
 
     void deliverBuf() {
-        System.out.println( "totalDemand() " + totalDemand() );
+        Logger.debug( "totalDemand() {}", totalDemand() );
         while ( totalDemand() > 0 ) {
             if ( totalDemand() <= Integer.MAX_VALUE ) {
                 final List<String> took =

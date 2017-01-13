@@ -1,32 +1,38 @@
 package akka;
 
+import akka.actor.ActorRef;
+
 /**
  * @author ftorriani
  */
 public class Protocol {
 
 
-    public static class Start {
+    public static class LogActors {
 
     }
 
-    public static class Init {
+    /**
+     * Registering message from ActorPublisher to StreamMediatorActor
+     */
+    public static class Register {
 
     }
 
-    public static class UserRegistration {
+    /**
+     * Unregistering message from ActorPublisher to StreamMediatorActor
+     */
+    public static class Unregister {
 
     }
 
-    public static class NewMessage {
+    public static class Message {
 
+        public final String text;
+
+        public Message( String text ) {
+            this.text = text;
+        }
     }
 
-    public static class MessageAccepted {
-
-    }
-
-    public static class MessageDenied {
-
-    }
 }
