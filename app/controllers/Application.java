@@ -27,13 +27,13 @@ import static play.mvc.Http.MimeTypes.EVENT_STREAM;
 @Singleton
 public class Application extends Controller {
 
-    private ActorSelection streamMediator;
+    private ActorSelection publishersManager;
 
     private ActorRef utils;
 
     @Inject
     public Application( ActorSystem actorSystem ) {
-        streamMediator = actorSystem.actorSelection( "/user/" + Constants.PUBLISHERS_MANAGER_ACTOR );
+        publishersManager = actorSystem.actorSelection( "/user/" + Constants.PUBLISHERS_MANAGER_ACTOR );
 
         utils = actorSystem.actorOf( Props.create( UtilsActor.class ), "UtilsActor" );
     }
@@ -62,7 +62,7 @@ public class Application extends Controller {
      */
     public Result message( String text ) {
         Logger.debug( "Application: message [{}]", text );
-        streamMediator.tell( new Message( text ), ActorRef.noSender() );
+        publishersManager.tell( new Message( text ), ActorRef.noSender() );
         return ok();
     }
 
