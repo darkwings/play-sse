@@ -1,8 +1,9 @@
 package akka.utils;
 
-import akka.sse.Protocol.LogActors;
+
 import akka.actor.*;
 import akka.japi.pf.ReceiveBuilder;
+import akka.utils.UtilsActorProtocol.LogActors;
 import play.Logger;
 
 /**
